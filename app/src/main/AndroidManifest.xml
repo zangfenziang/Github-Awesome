@@ -20,7 +20,7 @@
         </activity>
 
         <service
-            android:name=".Internet"
+            android:name=".soup.Internet"
             android:exported="false"></service>
     </application>
 

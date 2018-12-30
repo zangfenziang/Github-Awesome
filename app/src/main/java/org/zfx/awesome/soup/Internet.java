@@ -1,20 +1,22 @@
-package org.zfx.awesome;
+package org.zfx.awesome.soup;
+
+import org.zfx.awesome.DatabaseHelper;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.content.Context;
-import android.os.SystemClock;
 import android.support.v4.util.Consumer;
-import android.support.v4.util.Pair;
 
 import org.jsoup.HttpStatusException;
+import org.zfx.awesome.DatabaseHelper;
+import org.zfx.awesome.soup.Awesome;
+import org.zfx.awesome.soup.GitHubSoup;
+import org.zfx.awesome.soup.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class Internet extends IntentService {
-    private static final String DB_NAME = "GitHub";
+    public static final String DB_NAME = "GitHub";
     private static final int MIN_STAR = 10000;
     public Internet() {
         super("Internet");
@@ -64,6 +66,7 @@ public class Internet extends IntentService {
                 db.setAwesomeFinished(awesome);
             }
             catch (Exception e){
+                e.printStackTrace();
                 break;
             }
         }

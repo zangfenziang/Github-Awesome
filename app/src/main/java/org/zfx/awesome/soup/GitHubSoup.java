@@ -1,18 +1,13 @@
-package org.zfx.awesome;
+package org.zfx.awesome.soup;
 
-import android.app.IntentService;
-import android.app.Service;
-import android.content.Intent;
-import android.os.IBinder;
-import android.os.SystemClock;
 import android.support.v4.util.Consumer;
-import android.util.Log;
 import android.util.Pair;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.zfx.awesome.soup.Awesome;
 
 import java.io.IOException;
 import java.util.ArrayList;

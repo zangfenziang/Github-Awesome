@@ -1,4 +1,4 @@
-package org.zfx.awesome;
+package org.zfx.awesome.soup;
 
 import android.util.Log;
 
@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.zfx.awesome.soup.GitHubSoup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +21,12 @@ public class Repository {
     public int star;
     public int fork;
     public List<String> tag;
-    Repository(String name, String link){
+    public Repository(String name, String link){
         this.name = name;
         this.link = link;
         flush();
     }
-    Repository(String name, String link, int watch, int star, int fork){
+    public Repository(String name, String link, int watch, int star, int fork){
         this.name = name;
         this.link = link;
         this.watch = watch;
@@ -54,10 +55,12 @@ public class Repository {
                 tag.add(GitHubSoup.deleteElement(language.html()));
             }
         }
-        catch (Exception e){}
-        Log.d(TAG, "name:" + name + " link:" + link);
-        for (String s: tag){
-            Log.d(TAG + "_Tag", s);
+        catch (Exception e){
+            e.printStackTrace();
         }
+//        Log.d(TAG, "name:" + name + " link:" + link);
+//        for (String s: tag){
+//            Log.d(TAG + "_Tag", s);
+//        }
     }
 }

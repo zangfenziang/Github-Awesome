@@ -1,19 +1,19 @@
 package org.zfx.awesome;
 
-import android.app.IntentService;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.util.Consumer;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.Pair;
 import android.view.MenuItem;
 
-import java.io.IOException;
+import org.zfx.awesome.soup.Internet;
+import org.zfx.awesome.soup.Repository;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +28,14 @@ public class MainActivity extends AppCompatActivity {
         startService(intent);
         frags = new ArrayList<>();
         IndexFragment index = new IndexFragment();
-        ListFragment list = new ListFragment();
+        final ListFragment list = new ListFragment();
         SettingFragment setting = new SettingFragment();
+        index.setHistoryStateListener(new Consumer<Repository>() {
+            @Override
+            public void accept(Repository repository) {
+                list.onHistoryStateChange();
+            }
+        });
         frags.add(index);
         frags.add(list);
         frags.add(setting);
