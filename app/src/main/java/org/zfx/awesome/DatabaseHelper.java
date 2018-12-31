@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Message;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -104,6 +105,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
     }
+    public void updateStatus(Repository r, int status){
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("status", status);
+        db.update("repository", values, "name = ? and link = ?", new String[]{
+                r.name, r.link
+        });
+    }
     public boolean isInit(){
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("select * from awesome where status >= 0", new String[]{});
@@ -157,6 +166,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     public void setWeight(SparseArray<Integer> map){
         SQLiteDatabase db = getWritableDatabase();
+        db.delete("tagValue", "", new String[]{});
         for (int i = 0; i < map.size(); ++i){
             int tid = map.keyAt(i);
             int value = map.get(tid);
@@ -255,6 +265,80 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put("rid", rid);
             db.insert("history", null, values);
         }
+        cursor.close();
     }
     public void flush(){}
+    public void clear(){
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete("tagValue", "", new String[]{});
+    }
+    public void reset(){
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("status", 0);
+        db.update("repository", values, "status = 1", new String[]{});
+    }
+    public SettingMessage getMessage(){
+        SettingMessage m = new SettingMessage();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("select count(*) from tagValue", new String[]{});
+        cursor.moveToFirst();
+        if (cursor.getCount() != 0){
+            m.pf = cursor.getInt(0);
+        }
+        else{
+            m.pf = 0;
+        }
+        cursor.close();
+        cursor = db.rawQuery("select count(*) from repository where status >= 0", new String[]{});
+        cursor.moveToFirst();
+        if (cursor.getCount() != 0){
+            m.all = cursor.getInt(0);
+        }
+        else{
+            m.all = 0;
+        }
+        cursor.close();
+        cursor = db.rawQuery("select count(*) from repository where status = 1", new String[]{});
+        cursor.moveToFirst();
+        if (cursor.getCount() != 0){
+            m.now = cursor.getInt(0);
+        }
+        else{
+            m.now = 0;
+        }
+        cursor.close();
+        m.status = 0;
+        return m;
+    }
+    public void addWeight(Repository r, int w){
+        SQLiteDatabase db = getWritableDatabase();
+        SparseArray<Integer> map = getWeight();
+        for (String tag: r.tag){
+            int tid = getTid(tag);
+            int weight = map.get(tid, 0) + w;
+            map.put(tid, weight);
+            Cursor cursor = db.rawQuery("select rid from repositoryTag where tid = ?", new String[]{
+                    String.valueOf(tid)
+            });
+            cursor.moveToFirst();
+            while(!cursor.isAfterLast()){
+                int rid = cursor.getInt(0);
+                if (w > 0) {
+                    db.rawQuery("update repository set weight = weight + ? where rid = ?", new String[]{
+                            String.valueOf(w), String.valueOf(rid)
+                    }).close();
+                }
+                else{
+                    w = -w;
+                    db.rawQuery("update repository set weight = weight - ? where rid = ?", new String[]{
+                            String.valueOf(w), String.valueOf(rid)
+                    }).close();
+                }
+                cursor.moveToNext();
+            }
+            cursor.close();
+        }
+        setWeight(map);
+    }
 }

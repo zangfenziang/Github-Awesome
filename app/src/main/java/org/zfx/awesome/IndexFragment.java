@@ -74,8 +74,19 @@ public class IndexFragment extends Fragment {
             }
         });
     }
-    private void likeRepo(){}
-    private void dislikeRepo(){}
+    private void addWeight(int w){
+        if (r == null){
+            return;
+        }
+        DatabaseHelper db = new DatabaseHelper(getContext(), Internet.DB_NAME, null, 1);
+        db.addWeight(r, w);
+    }
+    private void likeRepo(){
+        addWeight(1);
+    }
+    private void dislikeRepo(){
+        addWeight(-10);
+    }
     private Consumer<Repository> historyStateListener;
     public void setHistoryStateListener(Consumer<Repository> historyStateListener) {
         this.historyStateListener = historyStateListener;
@@ -102,6 +113,8 @@ public class IndexFragment extends Fragment {
             webShow();
             addHistory();
             dislike.setVisibility(View.VISIBLE);
+            DatabaseHelper db = new DatabaseHelper(getContext(), Internet.DB_NAME, null, 1);
+            db.updateStatus(r, 1);
         }
     }
     private void webShow(){

@@ -1,6 +1,8 @@
 package org.zfx.awesome;
 
+import android.app.IntentService;
 import android.content.Intent;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
@@ -9,8 +11,15 @@ import android.support.v4.util.Consumer;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.zfx.awesome.soup.Internet;
 import org.zfx.awesome.soup.Repository;
 
@@ -20,6 +29,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MAIN_ACTIVITY";
     private List<Fragment> frags;
+    private SettingFragment setting;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
         frags = new ArrayList<>();
         IndexFragment index = new IndexFragment();
         final ListFragment list = new ListFragment();
-        SettingFragment setting = new SettingFragment();
+        setting = new SettingFragment();
         index.setHistoryStateListener(new Consumer<Repository>() {
             @Override
             public void accept(Repository repository) {
@@ -39,7 +49,12 @@ public class MainActivity extends AppCompatActivity {
         frags.add(index);
         frags.add(list);
         frags.add(setting);
+        EventBus.getDefault().register(this);
         bindEvent();
+        intent = new Intent(this, SettingService.class);
+        intent.putExtra("status", 0);
+        lock = false;
+        startService(intent);
     }
     private void bindEvent(){
         final BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navi);
@@ -84,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageScrollStateChanged(int i) {
-
             }
         });
         // set ViewPager
@@ -101,10 +115,31 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private boolean lock;
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessage(SettingMessage m){
+        if (m.status == -1){
+            if (!lock){
+                Intent intent = new Intent(this, SettingService.class);
+                intent.putExtra("status", 0);
+                startService(intent);
+            }
+        }
+        else if (m.status == 0){
+            setting.onMessage(m);
+        }
+    }
+
     @Override
     protected void onDestroy() {
         Intent intent = new Intent(this, Internet.class);
         stopService(intent);
+        lock = true;
+        intent = new Intent(this, SettingMessage.class);
+        stopService(intent);
         super.onDestroy();
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
     }
 }
